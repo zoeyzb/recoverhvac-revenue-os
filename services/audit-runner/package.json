@@ -1,0 +1,1 @@
+{"name":"recover-audit-runner","private":true,"type":"module","scripts":{"start":"node index.js","test":"node --test"},"dependencies":{"chrome-launcher":"^1.0.0","lighthouse":"^12.8.2"}}
