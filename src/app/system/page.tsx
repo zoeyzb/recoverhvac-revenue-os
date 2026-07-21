@@ -1,3 +1,1 @@
-import Home from "../page";
-
-export default function SystemPage(){return <Home initialView="System"/>}
+import { redirect } from "next/navigation"; export default function Page(){redirect("/owner/system")}

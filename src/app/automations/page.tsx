@@ -1,2 +1,1 @@
-import Home from "../page";
-export default function AutomationsPage(){return <Home initialView="Automations"/>}
+import { redirect } from "next/navigation"; export default function Page(){redirect("/owner/automations")}

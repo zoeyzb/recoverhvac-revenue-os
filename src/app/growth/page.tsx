@@ -1,3 +1,1 @@
-import Home from "../page";
-
-export default function GrowthPage(){return <Home initialView="Growth"/>}
+import { redirect } from "next/navigation"; export default function Page(){redirect("/owner/growth")}

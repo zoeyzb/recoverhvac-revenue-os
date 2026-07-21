@@ -4,8 +4,8 @@ import "./additions.css";
 import "./premium.css";
 
 export const metadata: Metadata = {
-  title: "RecoverHVAC — Revenue Operations",
-  description: "HVAC revenue recovery, outreach, AI calling and operations control center.",
+  title: "Recover — Turn missed demand into booked revenue",
+  description: "The AI revenue operating system for HVAC teams: audit conversion gaps, recover missed demand, book work, and prove revenue.",
 };
 
 export default function RootLayout({

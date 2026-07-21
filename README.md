@@ -1,5 +1,13 @@
 # RecoverHVAC
 
+## Public website and owner workspace
+
+- `/` is the public SaaS landing page.
+- `/owner/login` is the private owner sign-in.
+- `/owner` contains sales operations, recovery workflows, revenue attribution, and all provider connections.
+
+Set `OWNER_DASHBOARD_PASSWORD` and a long random `OWNER_SESSION_SECRET` in the deployment environment. Owner access uses an HTTP-only, secure, same-site cookie and fails closed when either value is missing. Supabase authentication continues to protect tenant data and backend operations inside the owner workspace.
+
 Truth-first HVAC revenue operations: connect providers, test credentials, run allowlisted communication tests, analyze conversations, and grow into audited recovery workflows.
 
 ## Run locally

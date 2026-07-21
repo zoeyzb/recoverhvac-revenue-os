@@ -1,3 +1,1 @@
-import Home from "../page";
-
-export default function InboxPage(){return <Home initialView="Inbox"/>}
+import { redirect } from "next/navigation"; export default function Page(){redirect("/owner/inbox")}
