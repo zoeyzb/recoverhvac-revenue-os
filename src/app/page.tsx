@@ -5,7 +5,7 @@ import "./landing.css";
 const capabilities: { icon: IconName; title: string; body: string; tag: string }[] = [
   { icon: "phone", title: "AI phone & text", body: "Answer missed calls, qualify inquiries, transfer urgent conversations, and keep follow-up moving after hours.", tag: "Calls · SMS" },
   { icon: "calendar", title: "Booking that stays in sync", body: "Offer real availability, book the right calendar, and carry cancellations or reschedules back into the conversation.", tag: "Calendar" },
-  { icon: "scan", title: "Website & SEO monitor", body: "Audit speed, conversion paths, technical SEO, and broken customer journeys—then turn findings into assigned work.", tag: "Growth" },
+  { icon: "scan", title: "Website & SEO monitor", body: "Audit speed, conversion paths, technical SEO, and broken customer journeys—then turn verified findings into assigned work.", tag: "Growth" },
   { icon: "refresh", title: "Follow-up on autopilot", body: "Run approved sequences for estimates, leads, reviews, renewals, and customers who went quiet.", tag: "Automation" },
   { icon: "users", title: "One customer timeline", body: "Keep calls, messages, bookings, approvals, and outcomes together instead of scattered across tabs.", tag: "Inbox" },
   { icon: "chart", title: "Revenue with receipts", body: "Connect conversations to bookings and verified payments, with provider evidence and costs attached.", tag: "Attribution" },
@@ -30,8 +30,8 @@ export default function LandingPage() {
       <div className="hero-message">
         <span className="eyebrow"><i/> AI revenue operations for service businesses</span>
         <h1>Every lead gets an answer.<br/><em>Every next step gets done.</em></h1>
-        <p>Recover handles calls, follow-up, booking, website and SEO issues, and revenue tracking from one calm workspace—without replacing the tools your team already uses.</p>
-        <div className="hero-buttons"><Link className="solid-button large" href="/signup">Create your workspace <Icon name="arrow" size={16}/></Link><a className="outline-button large" href="#product">See what it does</a></div>
+        <p>Recover operates calls, follow-up, booking, website and SEO monitoring, and revenue tracking from one calm workspace—without making your team build automation flows.</p>
+        <div className="hero-buttons"><Link className="solid-button large" href="/signup">Launch your AI front office <Icon name="arrow" size={16}/></Link><a className="outline-button large" href="#product">See what it does</a></div>
         <div className="hero-facts"><span><Icon name="check" size={14}/> 14-day software trial</span><span><Icon name="check" size={14}/> Safe test mode first</span><span><Icon name="check" size={14}/> Cancel anytime</span></div>
       </div>
       <ProductPreview />
@@ -40,13 +40,13 @@ export default function LandingPage() {
     <section className="outcome-bar"><span>Never miss the call</span><span>Follow up on time</span><span>Fill the calendar</span><span>Fix the conversion gaps</span><span>Know what paid</span></section>
 
     <section className="market-section capability-section" id="product">
-      <div className="section-heading"><span>ONE SYSTEM, FEWER GAPS</span><h2>The work between “new lead” and “paid customer.”</h2><p>Choose the pieces you need. Recover coordinates them around the customer, with approval and failure states visible.</p></div>
+      <div className="section-heading"><span>ONE SYSTEM, FEWER GAPS</span><h2>The work between “new lead” and “paid customer.”</h2><p>Connect the tools you already use. Recover prepares and runs approved playbooks around the customer, with policy decisions and failure states visible.</p></div>
       <div className="capability-grid">{capabilities.map(item=><article key={item.title}><div className="capability-top"><span>{item.tag}</span><i><Icon name={item.icon} size={20}/></i></div><h3>{item.title}</h3><p>{item.body}</p><Link href="/signup">Add to workspace <Icon name="arrow" size={14}/></Link></article>)}</div>
     </section>
 
     <section className="flow-section" id="how">
-      <div><span>HOW RECOVER WORKS</span><h2>Connect what you use.<br/>Automate what you approve.</h2><p>Start in test mode. Every live action has a source, policy decision, provider response, and owner-visible outcome.</p><Link className="outline-button light" href="/signup">Build your first workflow <Icon name="arrow" size={15}/></Link></div>
-      <ol><li><b>01</b><span><strong>Connect</strong><small>Phone, inbox, calendar, CRM, website, and payments.</small></span></li><li><b>02</b><span><strong>Choose a playbook</strong><small>Missed calls, lead follow-up, estimates, reviews, or reactivation.</small></span></li><li><b>03</b><span><strong>Test the edge cases</strong><small>Quiet hours, opt-outs, failures, transfers, and approvals.</small></span></li><li><b>04</b><span><strong>Turn it on</strong><small>Watch conversations, bookings, costs, and verified results.</small></span></li></ol>
+      <div><span>HOW RECOVER WORKS</span><h2>Connect what you use.<br/>Let Recover prepare the work.</h2><p>Start in test mode. Tell Recover your hours, routing, booking rules, approval policy, and brand voice. The AI prepares the playbooks; you review the launch plan instead of building technical workflows.</p><Link className="outline-button light" href="/signup">Launch your AI front office <Icon name="arrow" size={15}/></Link></div>
+      <ol><li><b>01</b><span><strong>Connect</strong><small>Phone, inbox, calendar, CRM, website, and payments.</small></span></li><li><b>02</b><span><strong>Set the rules</strong><small>Hours, urgency, transfers, booking, approvals, and follow-up limits.</small></span></li><li><b>03</b><span><strong>Review the launch plan</strong><small>Recover prepares missed-call, estimate, review, and reactivation playbooks.</small></span></li><li><b>04</b><span><strong>Turn it on</strong><small>Watch conversations, bookings, costs, failures, and verified results.</small></span></li></ol>
     </section>
 
     <section className="market-section pricing-section" id="pricing">
@@ -56,7 +56,7 @@ export default function LandingPage() {
     </section>
 
     <section className="closing-section"><span>YOUR NEXT LEAD IS ALREADY ON THE WAY</span><h2>Make sure the next step is ready.</h2><p>Create a workspace, connect nothing yet, and see exactly what Recover needs before any automation can run.</p><Link className="solid-button inverse large" href="/signup">Start free <Icon name="arrow" size={16}/></Link></section>
-    <footer className="market-footer"><Brand/><p>Revenue operations for service businesses.</p><div><Link href="/login">Log in</Link><a href="#pricing">Pricing</a><a href="mailto:hello@recoverhq.com">Contact</a></div></footer>
+    <footer className="market-footer"><Brand/><p>Revenue operations for service businesses.</p><div><Link href="/login">Log in</Link><a href="#pricing">Pricing</a><a href="mailto:hello@recoverhq.com">Contact</a><Link href="/owner/login">Operator access</Link></div></footer>
   </main>;
 }
 
