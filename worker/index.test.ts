@@ -19,6 +19,87 @@ import worker from "./index.js";
 const assets = { fetch: vi.fn(() => Promise.resolve(new Response("asset"))) };
 
 describe("integration backend", () => {
+  it("rejects a malformed signup email before calling Supabase", async () => {
+    const providerFetch = vi.spyOn(globalThis, "fetch");
+    const response = await worker.fetch(
+      new Request("https://local/api/auth/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://local" },
+        body: JSON.stringify({
+          businessName: "Northstar Services",
+          email: "Bepashkumarsingh@1",
+          password: "long-enough-password",
+        }),
+      }),
+      {
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+        SUPABASE_SERVICE_ROLE_KEY: "service",
+        ASSETS: assets,
+      },
+    );
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "VALIDATION_ERROR", message: "Enter a valid email address" },
+    });
+    expect(providerFetch).not.toHaveBeenCalled();
+    providerFetch.mockRestore();
+  });
+
+  it("creates a customer, organization, owner membership, safe settings and templates", async () => {
+    const providerFetch = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            user: { id: "user-1", email: "owner@example.com", identities: [{ id: "identity-1" }] },
+            access_token: "access",
+            refresh_token: "refresh",
+            expires_in: 3600,
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([{ id: "org-1", name: "Northstar Services" }]), {
+          status: 201,
+          headers: { "content-type": "application/json" },
+        }),
+      )
+      .mockResolvedValueOnce(new Response("", { status: 201 }))
+      .mockResolvedValueOnce(new Response("", { status: 201 }))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    const response = await worker.fetch(
+      new Request("https://local/api/auth/signup", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://local" },
+        body: JSON.stringify({
+          businessName: "Northstar Services",
+          email: "OWNER@example.com",
+          password: "long-enough-password",
+          timezone: "America/Chicago",
+        }),
+      }),
+      {
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon",
+        SUPABASE_SERVICE_ROLE_KEY: "service",
+        ASSETS: assets,
+      },
+    );
+
+    expect(response.status).toBe(201);
+    expect(response.headers.get("set-cookie")).toContain("recover_access=");
+    await expect(response.json()).resolves.toMatchObject({
+      data: { accountCreated: true, organization: { id: "org-1", name: "Northstar Services" } },
+    });
+    expect(providerFetch).toHaveBeenCalledTimes(5);
+    expect(String(providerFetch.mock.calls[2]?.[0])).toContain("organization_members");
+    expect(String(providerFetch.mock.calls[3]?.[0])).toContain("automation_settings");
+    expect(String(providerFetch.mock.calls[4]?.[0])).toContain("seed_recovery_templates");
+    providerFetch.mockRestore();
+  });
   it("authenticates the owner through the packaged worker and protects owner assets", async () => {
     const env={ASSETS:assets,OWNER_DASHBOARD_PASSWORD:"owner-password",OWNER_SESSION_SECRET:"long-random-owner-session-secret"};
     const blocked=await worker.fetch(new Request("https://local/owner/"),env);
@@ -209,7 +290,7 @@ describe("integration backend", () => {
     );
     expect(response.status).toBe(200);
     const sent = providerFetch.mock.calls[0]?.[1]?.body as URLSearchParams;
-    expect(sent.get("Twiml")).toContain("automated assistant for Recover HVAC");
+    expect(sent.get("Twiml")).toContain("automated assistant for your business through Recover");
     expect(sent.get("Twiml")).toContain("A &amp; B &lt;safe&gt;");
     providerFetch.mockRestore();
   });

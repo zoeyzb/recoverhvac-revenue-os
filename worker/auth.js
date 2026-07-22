@@ -62,10 +62,59 @@ function authBase(env){
   return env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/,"");
 }
 
+export function normalizeEmail(value){
+  const email=String(value||"").trim().toLowerCase();
+  if(email.length>254||!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))throw new Error("Enter a valid email address");
+  return email;
+}
+
+export async function readableAuthError(response,fallback="Authentication failed"){
+  if(response.status>=500)return "Sign in is temporarily unavailable. Please try again.";
+  const type=response.headers.get("content-type")||"";
+  if(!type.includes("application/json"))return fallback;
+  try{
+    const payload=await response.json();
+    const message=String(payload?.msg||payload?.message||payload?.error_description||"").trim();
+    if(/already registered|already exists/i.test(message))return "An account already exists for this email. Sign in instead.";
+    if(/invalid.*login|invalid.*credentials/i.test(message))return "Invalid email or password";
+    return message&&message.length<180?message:fallback;
+  }catch{return fallback;}
+}
+
 export async function passwordLogin(email,password,env){
   const response=await fetch(`${authBase(env)}/auth/v1/token?grant_type=password`,{method:"POST",headers:{apikey:env.NEXT_PUBLIC_SUPABASE_ANON_KEY,"content-type":"application/json"},body:JSON.stringify({email,password}),signal:AbortSignal.timeout(10000)});
-  if(!response.ok)throw new Error(response.status===400?"Invalid email or password":`Authentication failed (${response.status})`);
+  if(!response.ok)throw new Error(await readableAuthError(response,"Invalid email or password"));
   const session=await response.json();if(!session.access_token||!session.refresh_token)throw new Error("Authentication returned an invalid session");return session;
+}
+
+const serviceHeaders=(env,extra={})=>({apikey:env.SUPABASE_SERVICE_ROLE_KEY,authorization:`Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,"content-type":"application/json",...extra});
+
+export async function signupAccount({businessName,email,password,timezone},env){
+  const base=authBase(env);
+  if(!env.SUPABASE_SERVICE_ROLE_KEY)throw new Error("Account creation is not configured");
+  const signup=await fetch(`${base}/auth/v1/signup`,{method:"POST",headers:{apikey:env.NEXT_PUBLIC_SUPABASE_ANON_KEY,"content-type":"application/json"},body:JSON.stringify({email,password,data:{business_name:businessName}}),signal:AbortSignal.timeout(10000)});
+  if(!signup.ok)throw new Error(await readableAuthError(signup,"Could not create your account"));
+  const session=await signup.json();
+  const userId=session?.user?.id;
+  if(!userId)throw new Error("Account creation returned an invalid user");
+  if(Array.isArray(session.user.identities)&&session.user.identities.length===0)throw new Error("An account already exists for this email. Sign in instead.");
+  const rollback=async()=>{try{await fetch(`${base}/auth/v1/admin/users/${encodeURIComponent(userId)}`,{method:"DELETE",headers:serviceHeaders(env),signal:AbortSignal.timeout(8000)});}catch{}};
+  let organizationId="";
+  try{
+    const organizationResponse=await fetch(`${base}/rest/v1/organizations?select=id,name,timezone,communication_mode`,{method:"POST",headers:serviceHeaders(env,{prefer:"return=representation"}),body:JSON.stringify({name:businessName,timezone,communication_mode:"test"}),signal:AbortSignal.timeout(8000)});
+    if(!organizationResponse.ok)throw new Error("Could not create your workspace");
+    const organizations=await organizationResponse.json();
+    const organization=organizations?.[0];
+    if(!organization?.id)throw new Error("Could not create your workspace");
+    organizationId=organization.id;
+    const membership=await fetch(`${base}/rest/v1/organization_members`,{method:"POST",headers:serviceHeaders(env),body:JSON.stringify({organization_id:organization.id,user_id:userId,role:"owner"}),signal:AbortSignal.timeout(8000)});
+    if(!membership.ok)throw new Error("Could not assign workspace ownership");
+    const settings=await fetch(`${base}/rest/v1/automation_settings`,{method:"POST",headers:serviceHeaders(env),body:JSON.stringify({tenant_id:organization.id,master_enabled:false,approval_mode:"first_touch"}),signal:AbortSignal.timeout(8000)});
+    if(!settings.ok)throw new Error("Could not initialize safe automation settings");
+    const templates=await fetch(`${base}/rest/v1/rpc/seed_recovery_templates`,{method:"POST",headers:serviceHeaders(env),body:JSON.stringify({target:organization.id}),signal:AbortSignal.timeout(8000)});
+    if(!templates.ok)throw new Error("Could not install workflow templates");
+    return{session,user:{id:userId,email:session.user.email||email},organization};
+  }catch(error){if(organizationId){try{await fetch(`${base}/rest/v1/organizations?id=eq.${encodeURIComponent(organizationId)}`,{method:"DELETE",headers:serviceHeaders(env),signal:AbortSignal.timeout(8000)});}catch{}}await rollback();throw error;}
 }
 
 export async function refreshSession(refreshToken,env){

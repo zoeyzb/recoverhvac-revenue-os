@@ -1,1 +1,1 @@
-"""RecoverHVAC realtime voice service."""
+"""Recover realtime voice service."""

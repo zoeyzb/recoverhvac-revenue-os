@@ -1,4 +1,4 @@
-# RecoverHVAC Voice Agent
+# Recover Voice Agent
 
 Isolated LiveKit Agents service for realtime inbound and approved outbound calls. Deploy it as a separate long-running service on Railway or LiveKit Cloud; it does not run inside the Sites Worker.
 

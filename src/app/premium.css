@@ -16,6 +16,8 @@
     inset 0 1px rgba(255, 255, 255, 0.05),
     0 16px 50px rgba(0, 0, 0, 0.18);
 }
+
+.login-create{margin-top:18px!important;font-size:11px!important;text-align:center}.login-create a{color:var(--cyan)}.calendar-workspace{display:grid;gap:20px}.calendar-list{border:1px solid var(--line);border-radius:17px;overflow:hidden;background:linear-gradient(145deg,rgba(255,255,255,.052),rgba(255,255,255,.018));box-shadow:var(--shadow)}.calendar-list article{display:grid;grid-template-columns:110px 1fr auto;align-items:center;gap:18px;padding:18px 22px;border-bottom:1px solid var(--line)}.calendar-list article:last-child{border-bottom:0}.calendar-list strong,.calendar-list small{display:block}.calendar-list small{font-size:9px;color:var(--muted);margin-top:5px}.calendar-date{padding-right:18px;border-right:1px solid var(--line)}.calendar-date strong{font-size:16px}.calendar-list article>span{font-size:8px;color:var(--cyan);border:1px solid rgba(120,231,212,.2);border-radius:20px;padding:6px 9px}@media(max-width:640px){.calendar-list article{grid-template-columns:80px 1fr}.calendar-list article>span{display:none}}
 .setup-banner > div {
   display: grid;
   grid-template-columns: auto 1fr;

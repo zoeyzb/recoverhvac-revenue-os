@@ -88,14 +88,14 @@ class RecoverAgent(Agent):
     @function_tool
     async def book_appointment(self, run: RunContext[VoiceSessionData], starts_at: str, ends_at: str) -> dict[str, object]:
         """Book a confirmed slot only after the caller explicitly agrees; times must be ISO-8601."""
-        return await _tool(run, "booking", starts_at=starts_at, ends_at=ends_at, summary="HVAC service appointment")
+        return await _tool(run, "booking", starts_at=starts_at, ends_at=ends_at, summary="Service appointment")
 
     @function_tool
     async def send_payment_link(self, run: RunContext[VoiceSessionData]) -> dict[str, object]:
         """Send the server-approved payment amount after the caller explicitly agrees."""
         if not run.userdata.approved_payment_amount_minor:
             return {"ok": False, "code": "APPROVED_AMOUNT_REQUIRED"}
-        return await _tool(run, "payment_link", amount_minor=run.userdata.approved_payment_amount_minor, currency=run.userdata.payment_currency, description="Approved HVAC service deposit")
+        return await _tool(run, "payment_link", amount_minor=run.userdata.approved_payment_amount_minor, currency=run.userdata.payment_currency, description="Approved service deposit")
 
     @function_tool
     async def record_outcome(self, run: RunContext[VoiceSessionData], outcome: str) -> dict[str, object]:

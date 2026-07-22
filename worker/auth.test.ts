@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   cookieValue,
+  normalizeEmail,
+  readableAuthError,
   ownerSessionCookie,
   ownerSessionToken,
   sessionCookies,
@@ -26,6 +28,21 @@ describe("authentication boundary", () => {
     expect(validRole("owner")).toBe(true);
     expect(validRole("viewer")).toBe(true);
     expect(validRole("root")).toBe(false);
+  });
+
+  it("normalizes and validates customer email before authentication", () => {
+    expect(normalizeEmail("  OWNER@Example.COM ")).toBe("owner@example.com");
+    expect(() => normalizeEmail("Bepashkumarsingh@1")).toThrow("Enter a valid email address");
+  });
+
+  it("never leaks HTML or JSON parser failures from an auth provider", async () => {
+    const response = new Response("<!DOCTYPE html><h1>Proxy failure</h1>", {
+      status: 502,
+      headers: { "content-type": "text/html" },
+    });
+    await expect(readableAuthError(response, "Sign in failed")).resolves.toBe(
+      "Sign in is temporarily unavailable. Please try again.",
+    );
   });
 
   it("validates owner credentials without placing the password in the session token", async () => {

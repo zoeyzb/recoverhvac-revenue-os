@@ -7,9 +7,11 @@ import {
   ownerAuthConfigured,
   ownerSessionCookie,
   passwordLogin,
+  normalizeEmail,
   refreshSession,
   resolveContext,
   sessionCookies,
+  signupAccount,
   validOwnerPassword,
   validOwnerSession,
 } from "./auth.js";
@@ -665,7 +667,7 @@ async function createCalendarBooking(tenantId, contactId, input, env) {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        summary: input.summary || "HVAC service appointment",
+        summary: input.summary || "Service appointment",
         description: `Booked by Recover voice assistant. Call reference: ${input.call_request_id}`,
         start: { dateTime: startsAt.toISOString() },
         end: { dateTime: endsAt.toISOString() },
@@ -706,7 +708,7 @@ async function createAndSendPaymentLink(tenantId, contactId, input, env) {
   if (!contact) throw new Error("Contact not found");
   const baseUrl =
     env.NEXT_PUBLIC_APP_URL ||
-    "https://recoverhvac-ops.vineetsingh142004.chatgpt.site";
+    "https://recoverhq.com";
   const params = new URLSearchParams({
     mode: "payment",
     success_url: `${baseUrl}/?payment=success`,
@@ -717,7 +719,7 @@ async function createAndSendPaymentLink(tenantId, contactId, input, env) {
     ).toLowerCase(),
     "line_items[0][price_data][unit_amount]": String(amount),
     "line_items[0][price_data][product_data][name]": String(
-      input.description || "HVAC service deposit",
+      input.description || "Service deposit",
     ).slice(0, 120),
     "metadata[tenant_id]": tenantId,
     "metadata[contact_id]": contactId,
@@ -882,7 +884,7 @@ async function runAction(kind, body, env, tenantId = null) {
       body: JSON.stringify({
         from: env.RESEND_FROM_EMAIL,
         to: [recipient],
-        subject: "RecoverHVAC secure test",
+        subject: "Recover secure test",
         text: content,
       }),
     });
@@ -903,7 +905,7 @@ async function runAction(kind, body, env, tenantId = null) {
     const params = new URLSearchParams({
       To: recipient,
       From: env.TWILIO_PHONE_NUMBER,
-      Twiml: `<Response><Say>Hi, I&apos;m the automated assistant for Recover HVAC. This is a requested test call. ${escapeXml(content)}</Say></Response>`,
+      Twiml: `<Response><Say>Hi, I&apos;m the automated assistant for your business through Recover. This is a requested test call. ${escapeXml(content)}</Say></Response>`,
     });
     const response = await fetch(
       `https://api.twilio.com/2010-04-01/Accounts/${encodeURIComponent(env.TWILIO_ACCOUNT_SID)}/Calls.json`,
@@ -932,10 +934,10 @@ async function runAction(kind, body, env, tenantId = null) {
   if (!openaiKey) throw new Error("OpenAI is not configured");
   const instructions =
     kind === "operator"
-      ? `You are the planning layer of a policy-gated HVAC revenue operator. Based only on supplied facts, recommend exactly one next action from: call, sms, email, wait, human_review, do_not_contact. Return a compact plan with ACTION, WHY, URGENCY, REQUIRED_PROVIDER, DRAFT, MISSING_EVIDENCE, and APPROVAL_REQUIRED. Never claim the action was executed. Prefer do_not_contact or human_review when consent, identity, suppression, calling hours, source evidence, or contactability are unclear.
+      ? `You are the planning layer of a policy-gated revenue operator for a service business. Based only on supplied facts, recommend exactly one next action from: call, sms, email, wait, human_review, do_not_contact. Return a compact plan with ACTION, WHY, URGENCY, REQUIRED_PROVIDER, DRAFT, MISSING_EVIDENCE, and APPROVAL_REQUIRED. Never claim the action was executed. Prefer do_not_contact or human_review when consent, identity, suppression, calling hours, source evidence, or contactability are unclear.
 
 For an approved business call draft: open with one specific, verified pain point in plain language; identify the represented company and say you are its automated assistant; ask one short diagnostic question; be professional, warm and lightly witty only when it fits; never use jokes about emergencies, money, safety or a person's business performance; never pretend to be human; never invent an audit result, savings number, customer loss or relationship; immediately honor stop requests; offer a human transfer; and keep the opening under 45 words. Do not pressure for payment on the first cold interaction.`
-      : "Analyze this HVAC customer conversation. Return: intent, urgency, sentiment, next best action, risks, and a short suggested response. Do not invent facts.";
+      : "Analyze this service-business customer conversation. Return: intent, urgency, sentiment, next best action, risks, and a short suggested response. Do not invent facts.";
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -974,7 +976,7 @@ function validatePublicSite(value) {
 async function auditWebsite(value) {
   const url = validatePublicSite(value);
   const response = await fetch(url.toString(), {
-    headers: { "user-agent": "RecoverHVAC-Audit/1.0" },
+    headers: { "user-agent": "Recover-Audit/1.0" },
     redirect: "follow",
     signal: AbortSignal.timeout(10000),
   });
@@ -2110,6 +2112,38 @@ const worker = {
       });
     if (url.pathname === "/api/auth/config" && request.method === "GET")
       return json({ data: { enabled: authEnabled(env) } });
+    if (url.pathname === "/api/auth/signup" && request.method === "POST") {
+      if (!validMutationOrigin(request))
+        return json({ error: { code: "ORIGIN_REJECTED", message: "Request origin was rejected" } }, 403);
+      if (!authEnabled(env))
+        return json({ error: { code: "AUTH_NOT_CONFIGURED", message: "Account creation is not configured yet" } }, 503);
+      if (Number(request.headers.get("content-length") || 0) > 16384)
+        return json({ error: { code: "PAYLOAD_TOO_LARGE", message: "Request is too large" } }, 413);
+      let body;
+      try { body = await request.json(); }
+      catch { return json({ error: { code: "VALIDATION_ERROR", message: "Check the form and try again" } }, 422); }
+      const businessName=String(body.businessName||"").trim();
+      const password=String(body.password||"");
+      const timezone=String(body.timezone||"America/Chicago").trim();
+      let email;
+      try { email=normalizeEmail(body.email); }
+      catch(error){ return json({error:{code:"VALIDATION_ERROR",message:error instanceof Error?error.message:"Enter a valid email address"}},422); }
+      if(businessName.length<2||businessName.length>160)
+        return json({error:{code:"VALIDATION_ERROR",message:"Enter your business name"}},422);
+      if(password.length<10||password.length>256)
+        return json({error:{code:"VALIDATION_ERROR",message:"Use at least 10 characters for your password"}},422);
+      if(timezone.length>100)
+        return json({error:{code:"VALIDATION_ERROR",message:"Choose a valid timezone"}},422);
+      try{
+        const result=await signupAccount({businessName,email,password,timezone},env);
+        const payload={data:{accountCreated:true,emailConfirmationRequired:!result.session.access_token,organization:result.organization}};
+        return result.session.access_token&&result.session.refresh_token
+          ? jsonWithCookies(payload,201,sessionCookies(result.session))
+          : json(payload,201);
+      }catch(error){
+        return json({error:{code:"SIGNUP_FAILED",message:error instanceof Error?error.message:"Could not create your account"}},400);
+      }
+    }
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
       if (!authEnabled(env))
         return json(
@@ -2140,24 +2174,12 @@ const worker = {
           422,
         );
       }
-      const email = String(body.email || "")
-          .trim()
-          .toLowerCase(),
-        password = String(body.password || "");
-      if (
-        !/^\S+@\S+\.\S+$/.test(email) ||
-        password.length < 8 ||
-        password.length > 256
-      )
-        return json(
-          {
-            error: {
-              code: "VALIDATION_ERROR",
-              message: "Enter a valid email and password",
-            },
-          },
-          422,
-        );
+      let email;
+      try { email=normalizeEmail(body.email); }
+      catch(error){ return json({error:{code:"VALIDATION_ERROR",message:error instanceof Error?error.message:"Enter a valid email address"}},422); }
+      const password = String(body.password || "");
+      if (password.length < 8 || password.length > 256)
+        return json({error:{code:"VALIDATION_ERROR",message:"Enter your password"}},422);
       try {
         const session = await passwordLogin(email, password, env);
         const headers = new Headers(request.headers);
@@ -2216,7 +2238,7 @@ const worker = {
         200,
         clearSessionCookies(),
       );
-    if (url.pathname === "/api/auth/session" && request.method === "GET") {
+    if (url.pathname === "/api/auth/session" && ["GET", "POST"].includes(request.method)) {
       if (!authEnabled(env))
         return json(
           {
@@ -3870,7 +3892,7 @@ const worker = {
       );
     }
     if (env.ASSETS?.fetch) return env.ASSETS.fetch(request);
-    return new Response("RecoverHVAC assets are not bound", { status: 503 });
+    return new Response("Recover assets are not bound", { status: 503 });
   },
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(

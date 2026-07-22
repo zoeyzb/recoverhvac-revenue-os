@@ -4,8 +4,8 @@ import "./additions.css";
 import "./premium.css";
 
 export const metadata: Metadata = {
-  title: "Recover — Turn missed demand into booked revenue",
-  description: "The AI revenue operating system for HVAC teams: audit conversion gaps, recover missed demand, book work, and prove revenue.",
+  title: "Recover — AI revenue operations for service businesses",
+  description: "Answer calls, follow up, book customers, improve your website and SEO, and connect every result to verified revenue.",
 };
 
 export default function RootLayout({
@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>{children}</body>
     </html>
   );

@@ -1,0 +1,3 @@
+import { NextRequest, NextResponse } from "next/server";
+import { accountEnvironment, organizationContext } from "@/lib/account-auth";
+export async function POST(request: NextRequest){try{const access=request.cookies.get("recover_access")?.value;if(!access)return NextResponse.json({error:{code:"AUTH_REQUIRED",message:"Sign in required"}},{status:401});return NextResponse.json({data:await organizationContext(access,accountEnvironment())});}catch(error){const code=error instanceof Error?error.message:"AUTH_REQUIRED";return NextResponse.json({error:{code,message:code==="AUTH_NOT_CONFIGURED"?"Authentication is not configured":"Sign in required"}},{status:code==="AUTH_NOT_CONFIGURED"?503:401});}}

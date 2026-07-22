@@ -33,7 +33,7 @@ export default function OwnerLogin() {
 
   return (
     <main className="owner-login">
-      <Link href="/" className="login-home"><span><Icon name="wind" size={18} /></span><div><strong>Recover</strong><small>HVAC REVENUE OS</small></div></Link>
+      <Link href="/" className="login-home"><span><Icon name="wind" size={18} /></span><div><strong>Recover</strong><small>INTERNAL ADMIN</small></div></Link>
       <section>
         <div className="login-kicker"><span className="lock-mark"><Icon name="shield" size={20} /></span><small>PRIVATE OWNER WORKSPACE</small></div>
         <h1>Revenue command center.</h1>

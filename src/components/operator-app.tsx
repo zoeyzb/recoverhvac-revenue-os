@@ -7,6 +7,7 @@ import { Icon, IconName } from "@/components/icon";
 export type View =
   | "Today"
   | "Inbox"
+  | "Calendar"
   | "Growth"
   | "Automations"
   | "Revenue"
@@ -48,7 +49,7 @@ const setupSession: Session = {
   role: "owner",
   organization: {
     id: "setup",
-    name: "RecoverHVAC",
+    name: "Recover",
     timezone: "America/Chicago",
     communication_mode: "test",
   },
@@ -69,6 +70,9 @@ function LoginScreen({ setup = false }: { setup?: boolean }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
+      const type = response.headers.get("content-type") || "";
+      if (!type.includes("application/json"))
+        throw new Error("Sign in is temporarily unavailable. Please try again.");
       const payload = await response.json();
       if (!response.ok)
         throw new Error(payload.error?.message || "Sign in failed");
@@ -90,7 +94,7 @@ function LoginScreen({ setup = false }: { setup?: boolean }) {
             <span>Revenue OS</span>
           </div>
         </div>
-        <span className="kicker">SECURE OPERATOR ACCESS</span>
+        <span className="kicker">SECURE TEAM ACCESS</span>
         <h1>{setup ? "Finish the data foundation" : "Welcome back."}</h1>
         <p>
           {setup
@@ -127,18 +131,20 @@ function LoginScreen({ setup = false }: { setup?: boolean }) {
             </button>
           </form>
         )}
+        {!setup && <p className="login-create">New to Recover? <a href="/signup">Create a workspace</a></p>}
       </section>
     </main>
   );
 }
 
 const navigation: { label: View; icon: IconName; href: string }[] = [
-  { label: "Today", icon: "grid", href: "/owner" },
-  { label: "Inbox", icon: "phone", href: "/owner/inbox" },
-  { label: "Growth", icon: "users", href: "/owner/growth" },
-  { label: "Automations", icon: "workflow", href: "/owner/automations" },
-  { label: "Revenue", icon: "chart", href: "/owner/revenue" },
-  { label: "System", icon: "plug", href: "/owner/system" },
+  { label: "Today", icon: "grid", href: "/app" },
+  { label: "Inbox", icon: "phone", href: "/app/conversations" },
+  { label: "Calendar", icon: "calendar", href: "/app/calendar" },
+  { label: "Growth", icon: "scan", href: "/app/website" },
+  { label: "Automations", icon: "workflow", href: "/app/automations" },
+  { label: "Revenue", icon: "chart", href: "/app/revenue" },
+  { label: "System", icon: "plug", href: "/app/integrations" },
 ];
 
 function EmptyState({
@@ -662,6 +668,37 @@ function OperationsCenter() {
   );
 }
 
+function CalendarWorkspace() {
+  const [operations, setOperations] = useState<Operations | null>(null);
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    let active = true;
+    fetch("/api/operations")
+      .then(async (response) => {
+        const type = response.headers.get("content-type") || "";
+        if (!type.includes("application/json"))
+          throw new Error("Calendar data is temporarily unavailable.");
+        const payload = await response.json();
+        if (!response.ok)
+          throw new Error(payload.error?.message || "Calendar data is unavailable");
+        if (active) setOperations(payload.data);
+      })
+      .catch((error) => active && setMessage(error instanceof Error ? error.message : "Calendar data is unavailable"));
+    return () => { active = false; };
+  }, []);
+  return (
+    <section className="calendar-workspace">
+      <div className="section-bar">
+        <div><span className="kicker">VERIFIED BOOKINGS</span><h2>Upcoming appointments</h2><p>Bookings appear here only after a connected calendar or scheduling provider confirms them.</p></div>
+        <a className="button primary" href="/app/integrations"><Icon name="calendar" size={15} />Connect calendar</a>
+      </div>
+      {message ? <div className="ops-message">{message}</div> : !operations ? <div className="loader">Loading verified bookings…</div> : operations.appointments.length === 0 ? (
+        <EmptyState icon="calendar" title="No calendar connected yet" body="Connect Google Calendar, Calendly, or your scheduling system. Recover will use real availability and keep booking outcomes in the customer timeline." action="Open integrations" onAction={() => location.assign("/app/integrations")} />
+      ) : <div className="calendar-list">{operations.appointments.map((item) => <article key={item.id}><div className="calendar-date"><strong>{new Date(item.starts_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</strong><small>{new Date(item.starts_at).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}</small></div><div><strong>Customer appointment</strong><small>{item.provider} · {item.status}</small></div><span>Verified</span></article>)}</div>}
+    </section>
+  );
+}
+
 function GrowthWorkspace({ openSystem }: { openSystem: () => void }) {
   const [orders, setOrders] = useState<RecoveryOrder[]>([]);
   const [persistence, setPersistence] = useState<
@@ -742,7 +779,7 @@ function GrowthWorkspace({ openSystem }: { openSystem: () => void }) {
               required
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Acme Heating & Cooling"
+              placeholder="Northstar Home Services"
             />
           </label>
           <label className="field">
@@ -801,7 +838,7 @@ function GrowthWorkspace({ openSystem }: { openSystem: () => void }) {
           <EmptyState
             icon="scan"
             title="No company orders yet"
-            body="Add a real HVAC company above. No sample companies or fabricated audits are inserted."
+            body="Add a real company above. No sample companies or fabricated audits are inserted."
           />
         ) : (
           <div className="order-list">
@@ -1669,7 +1706,7 @@ export default function Home({
   };
   useEffect(() => {
     let active = true;
-    fetch("/api/auth/session")
+    fetch("/api/auth/session", { method: "POST" })
       .then(async (response) => {
         const payload = await response.json();
         if (!active) return;
@@ -1796,7 +1833,7 @@ export default function Home({
             <Icon name="menu" />
           </button>
           <div className="crumb">
-            <span>RecoverHVAC</span>
+            <span>Recover</span>
             <b>/</b>
             <strong>{view}</strong>
           </div>
@@ -1808,7 +1845,7 @@ export default function Home({
             <button className="icon-button" aria-label="Notifications">
               <Icon name="bell" size={18} />
             </button>
-            <a className="button primary" href="/system/">
+            <a className="button primary" href="/app/integrations">
               <Icon name="plug" size={16} />
               Connect system
             </a>
@@ -1825,7 +1862,7 @@ export default function Home({
                   sign-in, saved records and live automation.
                 </p>
               </div>
-              <a className="button primary" href="/system/">
+              <a className="button primary" href="/app/integrations">
                 Open setup center
                 <Icon name="arrow" size={14} />
               </a>
@@ -1853,7 +1890,9 @@ export default function Home({
                   : view === "Inbox"
                     ? "Calls, messages, AI analysis, consent and outcomes in one timeline."
                     : view === "Growth"
-                      ? "Discover, audit, approve and convert HVAC prospects without contaminating customer operations."
+                      ? "Monitor website performance, technical SEO, conversion paths, and approved growth opportunities."
+                      : view === "Calendar"
+                        ? "See verified bookings, availability connections, and scheduling outcomes in one place."
                       : view === "Automations"
                         ? "Watch every recovery job move from signed event to policy decision, approved action and verified outcome."
                         : view === "Revenue"
@@ -1967,7 +2006,7 @@ export default function Home({
                     estimated.
                   </p>
                 </div>
-                <a className="button ghost" href="/system/">
+                <a className="button ghost" href="/app/integrations">
                   Review system
                 </a>
               </section>
@@ -2025,6 +2064,7 @@ export default function Home({
               <ActionConsole />
             </>
           )}
+          {view === "Calendar" && <CalendarWorkspace />}
           {view === "Automations" && (
             <>
               <RuntimePanel expanded />

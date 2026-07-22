@@ -19,3 +19,11 @@
 2. Align local and packaged owner session signing and add regression coverage.
 3. Replace generic product copy with concrete HVAC recovery services, transparent pricing, a buyer-safe calculator, implementation steps, and objections.
 4. Verify responsive sales and owner-login journeys plus all production quality gates.
+# Industry-neutral product rebuild — 2026-07-21
+
+1. Define the customer account contract and reproduce validation/deployment failures with worker tests.
+2. Add secure signup provisioning and normalized authentication errors at the packaged worker boundary.
+3. Replace the public HVAC sales page with an industry-neutral conversion experience and self-serve plans.
+4. Add dedicated signup/login pages and separate customer access from internal owner administration.
+5. Reorganize the authenticated workspace around conversations, calendar, website/SEO, automations, revenue, and integrations.
+6. Remove remaining HVAC language and the hydration warning, then run tests, typecheck, lint, build, runtime checks, review, and publish.
