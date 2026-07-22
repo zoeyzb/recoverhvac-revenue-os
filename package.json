@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/preview-dev.mjs",
-    "build": "node scripts/clean-next-build.mjs && next build && node scripts/package-sites.mjs",
+    "build": "next build",
     "build:sites": "npm run build",
     "start": "next start",
     "lint": "eslint",
