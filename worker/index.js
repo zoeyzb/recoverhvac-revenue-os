@@ -1,12 +1,17 @@
 import { verifyStripeSignature, verifyTwilioSignature } from "./signatures.js";
 import { authorizeWorker, retryDelaySeconds } from "./workflow-queue.js";
 import {
+  clearOwnerSessionCookie,
   clearSessionCookies,
   cookieValue,
+  ownerAuthConfigured,
+  ownerSessionCookie,
   passwordLogin,
   refreshSession,
   resolveContext,
   sessionCookies,
+  validOwnerPassword,
+  validOwnerSession,
 } from "./auth.js";
 
 const providers = [
@@ -2046,6 +2051,55 @@ const validMutationOrigin = (request) => {
 const worker = {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/owner/login" && request.method === "POST") {
+      if (!validMutationOrigin(request))
+        return json({ error: "Request origin was rejected." }, 403);
+      if (!ownerAuthConfigured(env))
+        return json(
+          {
+            error:
+              "Owner access is not configured. Add OWNER_DASHBOARD_PASSWORD and OWNER_SESSION_SECRET to the deployed environment, then redeploy.",
+            code: "OWNER_AUTH_NOT_CONFIGURED",
+          },
+          503,
+        );
+      if (Number(request.headers.get("content-length") || 0) > 4096)
+        return json({ error: "Request is too large." }, 413);
+      let body;
+      try {
+        body = await request.json();
+      } catch {
+        return json({ error: "Enter your owner password." }, 422);
+      }
+      const candidate = String(body?.password ?? "");
+      if (!candidate || candidate.length > 256)
+        return json({ error: "Enter your owner password." }, 422);
+      if (!(await validOwnerPassword(candidate, env)))
+        return json({ error: "Incorrect owner password." }, 401);
+      return jsonWithCookies(
+        { ok: true },
+        200,
+        [await ownerSessionCookie(env)],
+      );
+    }
+    if (url.pathname === "/api/owner/logout" && request.method === "POST")
+      return jsonWithCookies(
+        { ok: true },
+        200,
+        [clearOwnerSessionCookie()],
+      );
+    if (
+      (url.pathname === "/owner" || url.pathname.startsWith("/owner/")) &&
+      url.pathname !== "/owner/login" &&
+      url.pathname !== "/owner/login/"
+    ) {
+      if (!(await validOwnerSession(request, env))) {
+        const login = new URL("/owner/login", request.url);
+        login.searchParams.set("next", url.pathname);
+        if (!ownerAuthConfigured(env)) login.searchParams.set("setup", "required");
+        return Response.redirect(login, 302);
+      }
+    }
     if (url.pathname === "/api/health" && request.method === "GET")
       return json({
         data: {
@@ -3810,9 +3864,13 @@ const worker = {
           );
         return json({ data: evaluate(input) });
       }
-      if (env.ASSETS?.fetch) return env.ASSETS.fetch(request);
-      return new Response("RecoverHVAC assets are not bound", { status: 503 });
+      return json(
+        { error: { code: "NOT_FOUND", message: "API route not found" } },
+        404,
+      );
     }
+    if (env.ASSETS?.fetch) return env.ASSETS.fetch(request);
+    return new Response("RecoverHVAC assets are not bound", { status: 503 });
   },
   async scheduled(_event, env, ctx) {
     ctx.waitUntil(

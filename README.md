@@ -8,6 +8,8 @@
 
 Set `OWNER_DASHBOARD_PASSWORD` and a long random `OWNER_SESSION_SECRET` in the deployment environment. Owner access uses an HTTP-only, secure, same-site cookie and fails closed when either value is missing. Supabase authentication continues to protect tenant data and backend operations inside the owner workspace.
 
+Typing `OWNER_DASHBOARD_PASSWORD=...` into a terminal does **not** save it for future terminal windows or configure the deployed website. For local use, put both values in `.env.local`. For the public deployment, add both values in the project environment settings and redeploy. Generate a session secret with `openssl rand -hex 32`; do not reuse the dashboard password as the session secret.
+
 Truth-first HVAC revenue operations: connect providers, test credentials, run allowlisted communication tests, analyze conversations, and grow into audited recovery workflows.
 
 ## Run locally

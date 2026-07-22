@@ -1,4 +1,5 @@
 const roles=new Set(["owner","admin","operator","viewer"]);
+export const OWNER_COOKIE="recover_owner";
 
 export function validRole(value){return roles.has(String(value||""));}
 
@@ -13,6 +14,42 @@ export function cookieValue(header,name){
 function cookie(name,value,maxAge){
   return `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${Math.max(0,Math.floor(maxAge))}; HttpOnly; Secure; SameSite=Lax`;
 }
+
+const encoder=new TextEncoder();
+const hex=(bytes)=>Array.from(new Uint8Array(bytes)).map(value=>value.toString(16).padStart(2,"0")).join("");
+
+async function digest(value){return new Uint8Array(await crypto.subtle.digest("SHA-256",encoder.encode(value)));}
+
+function equalBytes(left,right){
+  if(left.length!==right.length)return false;
+  let difference=0;
+  for(let index=0;index<left.length;index+=1)difference|=left[index]^right[index];
+  return difference===0;
+}
+
+export function ownerAuthConfigured(env){return Boolean(env.OWNER_DASHBOARD_PASSWORD&&env.OWNER_SESSION_SECRET);}
+
+export async function validOwnerPassword(candidate,env){
+  if(!ownerAuthConfigured(env)||!candidate)return false;
+  const [supplied,expected]=await Promise.all([digest(String(candidate)),digest(String(env.OWNER_DASHBOARD_PASSWORD))]);
+  return equalBytes(supplied,expected);
+}
+
+export async function ownerSessionToken(env){
+  if(!ownerAuthConfigured(env))return "";
+  const key=await crypto.subtle.importKey("raw",encoder.encode(env.OWNER_SESSION_SECRET),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  return hex(await crypto.subtle.sign("HMAC",key,encoder.encode("recover-owner-session-v1")));
+}
+
+export async function validOwnerSession(request,env){
+  const actual=cookieValue(request.headers.get("cookie"),OWNER_COOKIE);
+  const expected=await ownerSessionToken(env);
+  if(!actual||!expected)return false;
+  return equalBytes(encoder.encode(actual),encoder.encode(expected));
+}
+
+export async function ownerSessionCookie(env){return cookie(OWNER_COOKIE,await ownerSessionToken(env),60*60*12);}
+export function clearOwnerSessionCookie(){return cookie(OWNER_COOKIE,"",0);}
 
 export function sessionCookies(session){
   return [cookie("recover_access",session.access_token,Number(session.expires_in)||3600),cookie("recover_refresh",session.refresh_token,60*60*24*30)];

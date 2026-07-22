@@ -22,5 +22,6 @@ describe("owner dashboard authentication", () => {
   });
   it("binds tokens to password and secret", () => {
     expect(ownerToken("password", "secret-a")).not.toBe(ownerToken("password", "secret-b"));
+    expect(ownerToken("password-a", "secret-a")).toBe(ownerToken("password-b", "secret-a"));
   });
 });

@@ -19,6 +19,30 @@ import worker from "./index.js";
 const assets = { fetch: vi.fn(() => Promise.resolve(new Response("asset"))) };
 
 describe("integration backend", () => {
+  it("authenticates the owner through the packaged worker and protects owner assets", async () => {
+    const env={ASSETS:assets,OWNER_DASHBOARD_PASSWORD:"owner-password",OWNER_SESSION_SECRET:"long-random-owner-session-secret"};
+    const blocked=await worker.fetch(new Request("https://local/owner/"),env);
+    expect(blocked.status).toBe(302);
+    expect(blocked.headers.get("location")).toContain("/owner/login");
+
+    const login=await worker.fetch(new Request("https://local/api/owner/login",{method:"POST",headers:{"content-type":"application/json","origin":"https://local"},body:JSON.stringify({password:"owner-password"})}),env);
+    expect(login.status).toBe(200);
+    const setCookie=login.headers.get("set-cookie")||"";
+    expect(setCookie).toContain("recover_owner=");
+    expect(setCookie).toContain("HttpOnly");
+
+    const cookie=setCookie.split(";")[0];
+    const allowed=await worker.fetch(new Request("https://local/owner/",{headers:{cookie}}),env);
+    expect(allowed.status).toBe(200);
+    await expect(allowed.text()).resolves.toBe("asset");
+  });
+
+  it("explains when deployed owner authentication is not configured", async () => {
+    const response=await worker.fetch(new Request("https://local/api/owner/login",{method:"POST",headers:{"content-type":"application/json","origin":"https://local"},body:JSON.stringify({password:"anything"})}),{ASSETS:assets});
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({code:"OWNER_AUTH_NOT_CONFIGURED"});
+  });
+
   it("returns truthful unconfigured provider state", async () => {
     const response = await worker.fetch(
       new Request("https://local/api/integrations"),

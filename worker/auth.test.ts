@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { cookieValue, sessionCookies, validRole } from "./auth.js";
+import {
+  cookieValue,
+  ownerSessionCookie,
+  ownerSessionToken,
+  sessionCookies,
+  validOwnerPassword,
+  validRole,
+} from "./auth.js";
 
 describe("authentication boundary", () => {
   it("reads exact cookie names without accepting prefixes", () => {
@@ -19,5 +26,13 @@ describe("authentication boundary", () => {
     expect(validRole("owner")).toBe(true);
     expect(validRole("viewer")).toBe(true);
     expect(validRole("root")).toBe(false);
+  });
+
+  it("validates owner credentials without placing the password in the session token", async () => {
+    const env={OWNER_DASHBOARD_PASSWORD:"correct horse battery staple",OWNER_SESSION_SECRET:"session-secret-with-enough-entropy"};
+    await expect(validOwnerPassword("correct horse battery staple",env)).resolves.toBe(true);
+    await expect(validOwnerPassword("incorrect",env)).resolves.toBe(false);
+    await expect(ownerSessionToken(env)).resolves.not.toContain("correct horse");
+    await expect(ownerSessionCookie(env)).resolves.toContain("recover_owner=");
   });
 });

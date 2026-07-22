@@ -12,3 +12,10 @@
 - No customer/provider credentials exist yet, so provider execution must remain disabled.
 - Sites cannot host a continuously connected LiveKit voice worker; that worker needs a separate service deployment.
 - OpenOutreach's LinkedIn automation conflicts with the approved scope and remains isolated.
+
+## July 2026 sellability and access completion
+
+1. Reproduce and repair the missing deployed owner-login route in the packaged Worker.
+2. Align local and packaged owner session signing and add regression coverage.
+3. Replace generic product copy with concrete HVAC recovery services, transparent pricing, a buyer-safe calculator, implementation steps, and objections.
+4. Verify responsive sales and owner-login journeys plus all production quality gates.
