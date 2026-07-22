@@ -1,2 +1,5 @@
-import OperatorApp from "@/components/operator-app";
-export default function OwnerPage(){ return <OperatorApp initialView="Today"/> }
+import OwnerOperations from "@/components/owner-operations";
+
+export default function OwnerPage() {
+  return <OwnerOperations />;
+}
