@@ -14,6 +14,7 @@ const capabilities: { icon: IconName; title: string; body: string; tag: string; 
   { icon: "calendar", title: "Booking that stays in sync", body: "We connect availability, book the right calendar, and carry cancellations or reschedules back into the conversation.", tag: "Calendar" },
   { icon: "scan", title: "Website & SEO recovery", body: "We inspect speed, local visibility, conversion paths, technical SEO, and broken customer journeys, then prepare the work.", tag: "Growth" },
   { icon: "users", title: "One customer timeline", body: "Calls, messages, bookings, approvals, and outcomes stay together instead of scattered across tabs.", tag: "Inbox", size: "wide" },
+  { icon: "refresh", title: "Review recovery", body: "Recover sends approved review requests after completed jobs, follows up at the right time, and keeps responses tied to the customer record.", tag: "Reviews" },
   { icon: "chart", title: "Revenue with receipts", body: "Conversations connect to bookings and verified payments, with provider evidence and operating costs attached.", tag: "Attribution", size: "wide" },
 ];
 
@@ -36,7 +37,7 @@ export default function LandingPage() {
       <HeroProductPreview />
     </section>
 
-    <section className="outcome-bar"><span>Never miss the call</span><span>Follow up on time</span><span>Fill the calendar</span><span>Fix conversion gaps</span><span>Know what paid</span></section>
+    <section className="outcome-bar"><span>Never miss the call</span><span>Follow up on time</span><span>Fill the calendar</span><span>Grow your reviews</span><span>Fix conversion gaps</span><span>Know what paid</span></section>
 
     <section className="stack-strip" aria-label="Systems Recover can connect during setup">
       <span>WORKS AROUND YOUR STACK</span>
@@ -52,7 +53,7 @@ export default function LandingPage() {
     </section>
 
     <section className="flow-section" id="how">
-      <div><span>HOW RECOVER WORKS</span><h2>Show us the leak. We build the fix.</h2><p>Tell us where revenue slips away. We audit the path, build the recovery plan, connect the right systems, and run the approved work.</p><Link className="outline-button light" href="/get-started">Start the audit <Icon name="arrow" size={15}/></Link></div>
+      <div><span>HOW RECOVER WORKS</span><h2>We find the leak. We build the fix.</h2><p>Tell us where revenue slips away. We audit the path, build the recovery plan, connect the right systems, and run the approved work.</p><Link className="outline-button light" href="/get-started">Start the audit <Icon name="arrow" size={15}/></Link></div>
       <ol><li><b>01</b><span><strong>Tell us about the business</strong><small>Name, service area, website, phone, and the opportunities being lost.</small></span></li><li><b>02</b><span><strong>Choose the outcome</strong><small>Audit only, missed-call recovery, follow-up, reviews, SEO, or the complete system.</small></span></li><li><b>03</b><span><strong>We connect and configure</strong><small>Recover handles the technical setup. You authorize the systems you already use.</small></span></li><li><b>04</b><span><strong>Review, launch, and measure</strong><small>You approve the plan, then see conversations, bookings, issues, costs, and verified results.</small></span></li></ol>
     </section>
 
