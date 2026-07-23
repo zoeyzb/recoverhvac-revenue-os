@@ -1,0 +1,28 @@
+.intake-error {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.intake-error a {
+  color: inherit;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.intake-owner-entry {
+  display: block;
+  margin-top: 18px;
+  color: #383b35;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+@media (max-width: 520px) {
+  .intake-error {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

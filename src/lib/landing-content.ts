@@ -19,11 +19,11 @@ export const walkthroughs: Walkthrough[] = [
     label: "Missed call",
     icon: "phone",
     eyebrow: "INBOUND · AFTER HOURS",
-    title: "A missed call gets a useful next step.",
-    body: "Recover can respond on the approved channel, qualify the request, surface urgency, and offer real availability without leaving the customer in voicemail.",
+    title: "Missed call. Recovered opportunity.",
+    body: "Recover responds on the approved channel, understands what the caller needs, checks urgency, and offers real availability.",
     signal: "New caller · no answer",
-    action: "Qualify need and prepare a response",
-    result: "Booking options ready",
+    action: "Respond, qualify, and check availability",
+    result: "Customer gets a next step",
     approval: "Transfers and sensitive replies follow your policy.",
   },
   {
@@ -31,11 +31,11 @@ export const walkthroughs: Walkthrough[] = [
     label: "Quiet estimate",
     icon: "refresh",
     eyebrow: "FOLLOW-UP · APPROVED CADENCE",
-    title: "A quiet estimate does not disappear.",
-    body: "Recover keeps the approved follow-up moving, stops when the customer replies, and brings the conversation back to the same timeline.",
+    title: "No reply does not mean no sale.",
+    body: "Recover follows up on the cadence you approve, stops the moment the customer replies, and returns the conversation to your team.",
     signal: "Estimate sent · no reply",
     action: "Run the approved follow-up sequence",
-    result: "Reply routed to the owner",
+    result: "Reply returned to your team",
     approval: "Cadence, tone, and stop rules are confirmed before launch.",
   },
   {
@@ -43,8 +43,8 @@ export const walkthroughs: Walkthrough[] = [
     label: "Website leak",
     icon: "scan",
     eyebrow: "WEBSITE · CONVERSION MONITOR",
-    title: "A broken customer path becomes visible.",
-    body: "Recover checks the path from search to contact, records the evidence, and prepares the highest-impact fix instead of dropping a generic SEO score.",
+    title: "Find where the website loses the customer.",
+    body: "Recover checks the path from search to contact, records the failure, and ranks the highest-impact fix—without hiding behind a generic SEO score.",
     signal: "Form or booking path fails",
     action: "Capture evidence and rank the leak",
     result: "Fix prepared for review",
@@ -133,7 +133,7 @@ export const faqs = [
   {
     question: "Does Recover replace my team?",
     answer:
-      "No. Recover handles the repetitive work between inquiry and outcome, while your team keeps control of policies, exceptions, approvals, and customer relationships.",
+      "It can replace selected repetitive front-office work, or work beside your team—the choice is yours. Use Recover for after-hours coverage, overflow, follow-up, booking, or the full routine workflow while your people keep control of exceptions and important customer decisions.",
   },
   {
     question: "Can I keep my current phone number and calendar?",
@@ -158,7 +158,7 @@ export const faqs = [
   {
     question: "How quickly can we launch?",
     answer:
-      "Timing depends on the systems and approvals involved. After intake, you receive a concrete connection checklist and launch plan instead of an invented instant-start promise.",
+      "We can start the audit the same day. You receive the findings, recommended scope, and launch plan before anything connects. A focused workflow can often launch in days; broader phone, calendar, website, and revenue setups depend on access and approvals.",
   },
 ] as const;
 

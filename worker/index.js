@@ -1032,6 +1032,91 @@ async function auditWebsite(value) {
 
 const supabaseReady = (env) =>
   Boolean(env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+
+const publicIntakeNeeds = new Set([
+  "Missed calls",
+  "Slow lead response",
+  "Unfollowed estimates",
+  "Weak website",
+  "Poor local visibility",
+  "Too few reviews",
+  "No revenue attribution",
+  "Complete system",
+]);
+const publicIntakeServices = new Set(["audit", "front-office", "complete"]);
+const publicIntakeText = (value, label, min, max) => {
+  const text = String(value || "").trim();
+  if (text.length < min || text.length > max)
+    throw new Error(`Enter a valid ${label}`);
+  return text;
+};
+function parsePublicIntake(body) {
+  const noWebsite = body?.noWebsite === true;
+  const rawWebsite = String(body?.websiteUrl || "").trim();
+  let websiteUrl = null;
+  if (!noWebsite) {
+    try {
+      const parsed = new URL(rawWebsite);
+      if (!["http:", "https:"].includes(parsed.protocol)) throw new Error();
+      websiteUrl = parsed.toString();
+    } catch {
+      throw new Error(
+        "Enter a valid website URL or choose “I do not have a website”",
+      );
+    }
+  }
+  const needs = [
+    ...new Set((Array.isArray(body?.needs) ? body.needs : []).map(String)),
+  ].filter((need) => publicIntakeNeeds.has(need));
+  if (!needs.length) throw new Error("Choose at least one revenue leak");
+  const service = String(body?.service || "");
+  if (!publicIntakeServices.has(service))
+    throw new Error("Choose a service path");
+  const notes = String(body?.notes || "").trim();
+  if (notes.length > 2000)
+    throw new Error("Keep notes under 2,000 characters");
+  return {
+    contact_name: publicIntakeText(body?.name, "name", 2, 120),
+    business_name: publicIntakeText(
+      body?.businessName,
+      "business name",
+      2,
+      160,
+    ),
+    phone: publicIntakeText(body?.phone, "phone number", 7, 40),
+    email: normalizeEmail(body?.email),
+    industry: publicIntakeText(body?.industry, "business type", 2, 120),
+    service_area: publicIntakeText(body?.city, "service area", 2, 160),
+    website_url: websiteUrl,
+    no_website: noWebsite,
+    needs,
+    service_path: service,
+    notes: notes || null,
+    status: "new",
+  };
+}
+async function savePublicIntake(input, env) {
+  if (!supabaseReady(env)) throw new Error("INTAKE_NOT_CONFIGURED");
+  const base = env.NEXT_PUBLIC_SUPABASE_URL.replace(/\/$/, "");
+  const response = await fetch(
+    `${base}/rest/v1/public_intake_requests?select=id,created_at`,
+    {
+      method: "POST",
+      headers: {
+        apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+        authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+        "content-type": "application/json",
+        prefer: "return=representation",
+      },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(8000),
+    },
+  );
+  if (!response.ok) throw new Error("INTAKE_STORAGE_FAILED");
+  const saved = (await response.json())?.[0];
+  if (!saved?.id) throw new Error("INTAKE_STORAGE_FAILED");
+  return saved;
+}
 async function saveOrder(order, tenantId, env) {
   if (!supabaseReady(env)) return null;
   const response = await fetch(
@@ -2090,6 +2175,69 @@ const worker = {
         200,
         [clearOwnerSessionCookie()],
       );
+    if (url.pathname === "/api/intake" && request.method === "POST") {
+      if (!validMutationOrigin(request))
+        return json(
+          {
+            error: {
+              code: "ORIGIN_REJECTED",
+              message: "Request origin was rejected",
+            },
+          },
+          403,
+        );
+      if (Number(request.headers.get("content-length") || 0) > 32768)
+        return json(
+          {
+            error: {
+              code: "PAYLOAD_TOO_LARGE",
+              message: "Request is too large",
+            },
+          },
+          413,
+        );
+      try {
+        const input = parsePublicIntake(await request.json());
+        const saved = await savePublicIntake(input, env);
+        return json(
+          { data: { received: true, requestId: saved.id } },
+          201,
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        if (message === "INTAKE_NOT_CONFIGURED")
+          return json(
+            {
+              error: {
+                code: message,
+                message:
+                  "Online requests are being connected. Please email hello@recoverhq.com for immediate help.",
+              },
+            },
+            503,
+          );
+        if (message === "INTAKE_STORAGE_FAILED")
+          return json(
+            {
+              error: {
+                code: "INTAKE_UNAVAILABLE",
+                message:
+                  "We could not save your request. Please try again or email hello@recoverhq.com.",
+              },
+            },
+            503,
+          );
+        return json(
+          {
+            error: {
+              code: "VALIDATION_ERROR",
+              message: message || "Check the form and try again",
+            },
+          },
+          422,
+        );
+      }
+    }
     if (
       (url.pathname === "/owner" || url.pathname.startsWith("/owner/")) &&
       url.pathname !== "/owner/login" &&

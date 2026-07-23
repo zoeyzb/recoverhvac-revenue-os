@@ -37,7 +37,7 @@ export default function OwnerLogin() {
       <section>
         <div className="login-kicker"><span className="lock-mark"><Icon name="shield" size={20} /></span><small>PRIVATE OWNER WORKSPACE</small></div>
         <h1>Revenue command center.</h1>
-        <p>Open recovery activity, conversations, approvals, attributed revenue, workflow health, and provider connections.</p>
+        <p>Private access for the Recover platform owner. This is separate from a client account and uses the owner password configured for this deployment.</p>
         <form onSubmit={submit}>
           <label htmlFor="owner-password">Owner password</label>
           <div className="password-field">
@@ -47,7 +47,7 @@ export default function OwnerLogin() {
           {error && <div className="login-error" role="alert">{error}</div>}
           <button className="login-submit" disabled={busy || !password}>{busy ? "Verifying…" : "Open dashboard"}<Icon name="arrow" size={15} /></button>
         </form>
-        <div className="login-support"><Icon name="shield" size={13} /><span>Encrypted, HTTP-only owner session. Your password is never stored in the browser.</span></div>
+        <div className="login-support"><Icon name="shield" size={13} /><span>Use the value set as <code>OWNER_DASHBOARD_PASSWORD</code> in the deployed environment. The session is encrypted and the password is never stored in the browser.</span></div>
         <Link href="/">← Back to public website</Link>
       </section>
     </main>

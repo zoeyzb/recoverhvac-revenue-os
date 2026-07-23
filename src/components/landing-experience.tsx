@@ -95,9 +95,9 @@ export function InteractiveWalkthrough() {
   return (
     <section className="experience-section" id="demo">
       <div className="experience-heading">
-        <span>SEE THE HANDOFF</span>
-        <h2>From loose end to accountable next step.</h2>
-        <p>Choose a leak to see the example workflow. The live workspace uses verified provider events—not sample results.</p>
+        <span>SEE RECOVER IN ACTION</span>
+        <h2>Pick a leak. See how Recover closes it.</h2>
+        <p>Three common revenue leaks. One clear handoff from the missed moment to the next action.</p>
       </div>
       <div className="experience-layout">
         <div className="experience-tabs" aria-label="Choose a recovery workflow">
@@ -173,11 +173,34 @@ export function ProofSection() {
 
   return (
     <section className="proof-section" aria-labelledby="proof-title">
-      <div><span>PROOF, NOT PLACEHOLDERS</span><h2 id="proof-title">Every result should keep its receipts.</h2><p>Recover will publish customer stories only with permission and source evidence. Until then, the product is judged by what it can verify.</p></div>
-      <div className="evidence-grid">
-        <article><b>01</b><Icon name="phone" size={22} /><h3>Conversation evidence</h3><p>Provider event, timestamp, direction, consent state, and outcome stay attached.</p></article>
-        <article><b>02</b><Icon name="calendar" size={22} /><h3>Booking evidence</h3><p>The source conversation connects to a confirmed calendar or scheduling record.</p></article>
-        <article><b>03</b><Icon name="dollar" size={22} /><h3>Revenue evidence</h3><p>Attributed revenue requires a verified payment event, with operating costs visible.</p></article>
+      <div className="proof-visual" aria-label="Example evidence chain">
+        <div className="proof-orbit proof-orbit-one" />
+        <div className="proof-orbit proof-orbit-two" />
+        <div className="proof-receipt receipt-call">
+          <span><Icon name="phone" size={16} /> CALL</span>
+          <strong>Missed call recovered</strong>
+          <small>Provider event · 10:42 AM</small>
+        </div>
+        <div className="proof-receipt receipt-booking">
+          <span><Icon name="calendar" size={16} /> BOOKING</span>
+          <strong>Appointment confirmed</strong>
+          <small>Source conversation linked</small>
+        </div>
+        <div className="proof-receipt receipt-revenue">
+          <span><Icon name="dollar" size={16} /> REVENUE</span>
+          <strong>Payment verified</strong>
+          <small>Attribution chain complete</small>
+        </div>
+      </div>
+      <div className="proof-copy">
+        <span>PROOF AT EVERY HANDOFF</span>
+        <h2 id="proof-title">Know what happened. Know what paid.</h2>
+        <p>Recover keeps the source attached from first contact to booked work and verified revenue.</p>
+        <div className="evidence-list">
+          <article><b>01</b><span><h3>Conversation</h3><p>Who contacted you, when, on which channel, and what happened next.</p></span><Icon name="phone" size={20} /></article>
+          <article><b>02</b><span><h3>Booking</h3><p>The confirmed appointment stays linked to the conversation that created it.</p></span><Icon name="calendar" size={20} /></article>
+          <article><b>03</b><span><h3>Revenue</h3><p>Revenue is counted only after a verified payment event, with costs visible.</p></span><Icon name="dollar" size={20} /></article>
+        </div>
       </div>
     </section>
   );

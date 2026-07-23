@@ -124,6 +124,104 @@ describe("integration backend", () => {
     await expect(response.json()).resolves.toMatchObject({code:"OWNER_AUTH_NOT_CONFIGURED"});
   });
 
+  it("persists a valid public recovery-plan request", async () => {
+    const providerFetch = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce(
+      new Response(
+        JSON.stringify([{ id: "intake-1", created_at: "2026-07-23T18:00:00Z" }]),
+        { status: 201, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const response = await worker.fetch(
+      new Request("https://local/api/intake", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://local" },
+        body: JSON.stringify({
+          name: "Alex Morgan",
+          businessName: "Northstar Services",
+          phone: "3125550100",
+          email: "alex@example.com",
+          industry: "Plumbing",
+          city: "Chicago",
+          websiteUrl: "https://example.com",
+          needs: ["Missed calls"],
+          service: "front-office",
+        }),
+      }),
+      {
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service",
+        ASSETS: assets,
+      },
+    );
+    expect(response.status).toBe(201);
+    await expect(response.json()).resolves.toEqual({
+      data: { received: true, requestId: "intake-1" },
+    });
+    const request = providerFetch.mock.calls[0];
+    expect(String(request?.[0])).toContain("/public_intake_requests");
+    expect(String((request?.[1] as RequestInit)?.body)).toContain(
+      '"business_name":"Northstar Services"',
+    );
+    providerFetch.mockRestore();
+  });
+
+  it("rejects an incomplete public intake before persistence", async () => {
+    const providerFetch = vi.spyOn(globalThis, "fetch");
+    const response = await worker.fetch(
+      new Request("https://local/api/intake", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://local" },
+        body: JSON.stringify({
+          name: "A",
+          businessName: "Northstar Services",
+          phone: "3125550100",
+          email: "alex@example.com",
+          industry: "Plumbing",
+          city: "Chicago",
+          websiteUrl: "https://example.com",
+          needs: [],
+          service: "front-office",
+        }),
+      }),
+      {
+        NEXT_PUBLIC_SUPABASE_URL: "https://project.supabase.co",
+        SUPABASE_SERVICE_ROLE_KEY: "service",
+        ASSETS: assets,
+      },
+    );
+    expect(response.status).toBe(422);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "VALIDATION_ERROR" },
+    });
+    expect(providerFetch).not.toHaveBeenCalled();
+    providerFetch.mockRestore();
+  });
+
+  it("explains when public intake persistence is not configured", async () => {
+    const response = await worker.fetch(
+      new Request("https://local/api/intake", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://local" },
+        body: JSON.stringify({
+          name: "Alex Morgan",
+          businessName: "Northstar Services",
+          phone: "3125550100",
+          email: "alex@example.com",
+          industry: "Plumbing",
+          city: "Chicago",
+          noWebsite: true,
+          needs: ["Missed calls"],
+          service: "front-office",
+        }),
+      }),
+      { ASSETS: assets },
+    );
+    expect(response.status).toBe(503);
+    await expect(response.json()).resolves.toMatchObject({
+      error: { code: "INTAKE_NOT_CONFIGURED" },
+    });
+  });
+
   it("returns truthful unconfigured provider state", async () => {
     const response = await worker.fetch(
       new Request("https://local/api/integrations"),

@@ -22,7 +22,7 @@ export default function LandingPage() {
     <nav className="market-nav" aria-label="Primary navigation">
       <Brand />
       <div className="market-links"><a href="#product">What we handle</a><a href="#how">How it works</a><a href="#pricing">Services</a></div>
-      <div className="market-actions"><Link className="link-button" href="/login">Client login</Link><Link className="solid-button" href="/get-started">Get my recovery plan <Icon name="arrow" size={15}/></Link></div>
+      <div className="market-actions"><Link className="link-button owner-link" href="/owner/login">Owner login</Link><Link className="link-button client-link" href="/login">Client login</Link><Link className="solid-button" href="/get-started">Get my recovery plan <Icon name="arrow" size={15}/></Link></div>
     </nav>
 
     <section className="market-hero">
@@ -52,7 +52,7 @@ export default function LandingPage() {
     </section>
 
     <section className="flow-section" id="how">
-      <div><span>HOW RECOVER WORKS</span><h2>You tell us what is being lost. We build the recovery system.</h2><p>No workflow builder. No API-key maze. No technical dashboard before you are ready. Recover learns the business, connects the systems with you, prepares the launch plan, and operates the approved work.</p><Link className="outline-button light" href="/get-started">Start the intake <Icon name="arrow" size={15}/></Link></div>
+      <div><span>HOW RECOVER WORKS</span><h2>Show us the leak. We build the fix.</h2><p>Tell us where revenue slips away. We audit the path, build the recovery plan, connect the right systems, and run the approved work.</p><Link className="outline-button light" href="/get-started">Start the audit <Icon name="arrow" size={15}/></Link></div>
       <ol><li><b>01</b><span><strong>Tell us about the business</strong><small>Name, service area, website, phone, and the opportunities being lost.</small></span></li><li><b>02</b><span><strong>Choose the outcome</strong><small>Audit only, missed-call recovery, follow-up, reviews, SEO, or the complete system.</small></span></li><li><b>03</b><span><strong>We connect and configure</strong><small>Recover handles the technical setup. You authorize the systems you already use.</small></span></li><li><b>04</b><span><strong>Review, launch, and measure</strong><small>You approve the plan, then see conversations, bookings, issues, costs, and verified results.</small></span></li></ol>
     </section>
 
@@ -64,12 +64,12 @@ export default function LandingPage() {
     <ProofSection />
 
     <section className="faq-section" id="faq">
-      <div className="faq-heading"><span>THE QUESTIONS WORTH ASKING</span><h2>Clear before anything connects.</h2><p>No mystery automation, hidden customer claims, or surprise provider bill.</p></div>
+      <div className="faq-heading"><span>BEFORE WE CONNECT ANYTHING</span><h2>Know the plan before it goes live.</h2><p>Clear scope, clear approvals, clear costs—and no surprise automation.</p></div>
       <div className="faq-list">{faqs.map((item, index) => <details key={item.question} open={index === 0}><summary><span>0{index + 1}</span><strong>{item.question}</strong><i><Icon name="plus" size={17}/></i></summary><p>{item.answer}</p></details>)}</div>
     </section>
 
-    <section className="closing-section"><span>YOUR NEXT LEAD IS ALREADY ON THE WAY</span><h2>Make sure the next step is ready.</h2><p>Tell us what your business is losing. Recover will prepare the right service plan and the setup checklist.</p><Link className="solid-button inverse large" href="/get-started">Get my recovery plan <Icon name="arrow" size={16}/></Link></section>
-    <footer className="market-footer"><Brand/><p>Managed AI revenue operations for service businesses.</p><div><Link href="/login">Client login</Link><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="mailto:hello@recoverhq.com">Contact</a><Link href="/owner/login">Operator access</Link></div></footer>
+    <section className="closing-section"><span>YOUR NEXT LEAD IS ALREADY ON THE WAY</span><h2>Be ready for the next one.</h2><p>Show us where revenue is slipping. We can start the audit today and build the recovery plan from real evidence.</p><Link className="solid-button inverse large" href="/get-started">Start my audit <Icon name="arrow" size={16}/></Link></section>
+    <footer className="market-footer"><Brand/><p>Managed AI revenue operations for service businesses.</p><div><Link href="/login">Client login</Link><Link className="footer-owner-link" href="/owner/login">Owner login</Link><a href="#pricing">Pricing</a><a href="#faq">FAQ</a><a href="mailto:hello@recoverhq.com">Contact</a></div></footer>
   </main>;
 }
 
