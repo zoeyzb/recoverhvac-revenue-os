@@ -14,6 +14,8 @@ type Check = {
 };
 type Readiness = {
   checks: Check[];
+  connectors: (Check & { configured: number; expected: number })[];
+  connectorsReady: number;
   ready: number;
   attention: number;
   checkedAt: string;
@@ -144,6 +146,38 @@ function OperationsView({
           <p>The native runtime is primary. Activepieces is optional.</p>
           <Link href="/app/automations">Open automation runtime →</Link>
         </article>
+      </section>
+      <section className="owner-panel">
+        <header>
+          <div>
+            <span>CONNECTOR CHECKLIST</span>
+            <h2>
+              {readiness?.connectorsReady || 0}/{readiness?.connectors?.length || 0}{" "}
+              Vercel integrations ready
+            </h2>
+            <p>
+              Presence is checked here; use the customer connection center to test
+              credentials. Railway worker variables are checked in Railway because
+              Vercel cannot read another platform&apos;s secret store.
+            </p>
+          </div>
+          <Link href="/app/integrations">Open connection center →</Link>
+        </header>
+        <div className="owner-check-grid connector-grid">
+          {(readiness?.connectors || []).map((connector) => (
+            <article key={connector.id}>
+              <div>
+                <h3>{connector.name}</h3>
+                <StatusPill state={connector.state} />
+              </div>
+              <p>{connector.detail}</p>
+              <small>
+                {connector.configured}/{connector.expected} expected variables ·{" "}
+                {connector.source}
+              </small>
+            </article>
+          ))}
+        </div>
       </section>
     </>
   );
