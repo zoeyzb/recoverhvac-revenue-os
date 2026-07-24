@@ -1,5 +1,5 @@
-import FrontendDashboard from "@/components/frontend-dashboard";
+import OperatorApp from "@/components/operator-app";
 
 export default function AppPage() {
-  return <FrontendDashboard />;
+  return <OperatorApp initialView="Today" />;
 }

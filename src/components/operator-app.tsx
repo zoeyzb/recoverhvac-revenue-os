@@ -137,14 +137,14 @@ function LoginScreen({ setup = false }: { setup?: boolean }) {
   );
 }
 
-const navigation: { label: View; icon: IconName; href: string }[] = [
-  { label: "Today", icon: "grid", href: "/app" },
-  { label: "Inbox", icon: "phone", href: "/app/conversations" },
-  { label: "Calendar", icon: "calendar", href: "/app/calendar" },
-  { label: "Growth", icon: "scan", href: "/app/website" },
-  { label: "Automations", icon: "workflow", href: "/app/automations" },
-  { label: "Revenue", icon: "chart", href: "/app/revenue" },
-  { label: "System", icon: "plug", href: "/app/integrations" },
+const navigation: { label: View; display: string; icon: IconName; href: string }[] = [
+  { label: "Today", display: "Today", icon: "grid", href: "/app" },
+  { label: "Inbox", display: "Inbox", icon: "phone", href: "/app/conversations" },
+  { label: "Calendar", display: "Calendar", icon: "calendar", href: "/app/calendar" },
+  { label: "Growth", display: "Website", icon: "scan", href: "/app/website" },
+  { label: "Automations", display: "Automations", icon: "workflow", href: "/app/automations" },
+  { label: "Revenue", display: "Revenue", icon: "chart", href: "/app/revenue" },
+  { label: "System", display: "Connections", icon: "plug", href: "/app/integrations" },
 ];
 
 function EmptyState({
@@ -888,7 +888,7 @@ function GrowthWorkspace({ openSystem }: { openSystem: () => void }) {
               </p>
             </div>
             <button className="button ghost" onClick={openSystem}>
-              Open System
+              Open Connections
             </button>
           </div>
         )}
@@ -1740,6 +1740,8 @@ export default function Home({
     [providers],
   );
   const ready = connected >= 3;
+  const viewTitle =
+    navigation.find((item) => item.label === view)?.display || view;
 
   if (authState === "loading")
     return (
@@ -1779,7 +1781,7 @@ export default function Home({
               }}
             >
               <Icon name={item.icon} />
-              <span>{item.label}</span>
+              <span>{item.display}</span>
               {item.label === "System" && (
                 <b>
                   {connected}/{providers.length || 11}
@@ -1835,7 +1837,7 @@ export default function Home({
           <div className="crumb">
             <span>Recover</span>
             <b>/</b>
-            <strong>{view}</strong>
+            <strong>{viewTitle}</strong>
           </div>
           <div className="top-actions">
             <div className="environment">
@@ -1881,7 +1883,7 @@ export default function Home({
                     <em>booked revenue.</em>
                   </>
                 ) : (
-                  view
+                  viewTitle
                 )}
               </h1>
               <p>

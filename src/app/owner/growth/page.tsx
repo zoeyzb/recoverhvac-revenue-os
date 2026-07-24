@@ -1,1 +1,2 @@
-import OperatorApp from "@/components/operator-app"; export default function Page(){return <OperatorApp initialView="Growth"/>}
+import { redirect } from "next/navigation";
+export default function Page(){redirect("/owner")}
