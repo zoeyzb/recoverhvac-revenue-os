@@ -7,13 +7,27 @@ const api=()=>required("RECOVER_API_URL").replace(/\/$/,"");
 const secret=()=>required("AUDIT_RUNNER_SECRET");
 const safeUrl=value=>{const url=new URL(value);if(url.protocol!=="https:")throw new Error("Only public HTTPS targets are allowed");return url.toString()};
 
+async function firecrawlEvidence(url){
+  const key=process.env.FIRECRAWL_API_KEY;
+  if(!key)return [];
+  try{
+    const response=await fetch("https://api.firecrawl.dev/v2/scrape",{method:"POST",headers:{authorization:`Bearer ${key}`,"content-type":"application/json"},body:JSON.stringify({url,formats:["markdown"],onlyMainContent:true}),signal:AbortSignal.timeout(30000)});
+    if(!response.ok)return [];
+    const payload=await response.json();
+    const data=payload?.data;
+    if(!data)return [];
+    return [{kind:"firecrawl",label:"Structured website content captured",source_url:url,value:{title:data.metadata?.title||null,description:data.metadata?.description||null,markdown_characters:String(data.markdown||"").length}}];
+  }catch{return [];}
+}
+
 export async function runAudit(job){
   const chrome=await launch({chromeFlags:["--headless","--no-sandbox","--disable-dev-shm-usage"]});
   try{
     const result=await lighthouse(safeUrl(job.requested_url),{port:chrome.port,output:"json",logLevel:"error",onlyCategories:["performance","accessibility","best-practices","seo"]});
     if(!result?.lhr)throw new Error("Lighthouse returned no report");
     const lhr=result.lhr;
-    return {final_url:lhr.finalDisplayedUrl,lighthouse:{version:lhr.lighthouseVersion,fetchTime:lhr.fetchTime,categories:Object.fromEntries(Object.entries(lhr.categories).map(([key,value])=>[key,{score:value.score,title:value.title}]))},evidence:Object.values(lhr.audits).filter(a=>a.score!==null&&a.score<1).slice(0,40).map(a=>({kind:"lighthouse",label:a.title,source_url:lhr.finalDisplayedUrl,value:{id:a.id,score:a.score,displayValue:a.displayValue||null,description:a.description}}))};
+    const firecrawl=await firecrawlEvidence(lhr.finalDisplayedUrl);
+    return {final_url:lhr.finalDisplayedUrl,lighthouse:{version:lhr.lighthouseVersion,fetchTime:lhr.fetchTime,categories:Object.fromEntries(Object.entries(lhr.categories).map(([key,value])=>[key,{score:value.score,title:value.title}]))},evidence:[...Object.values(lhr.audits).filter(a=>a.score!==null&&a.score<1).slice(0,40).map(a=>({kind:"lighthouse",label:a.title,source_url:lhr.finalDisplayedUrl,value:{id:a.id,score:a.score,displayValue:a.displayValue||null,description:a.description}})),...firecrawl]};
   } finally {await chrome.kill();}
 }
 

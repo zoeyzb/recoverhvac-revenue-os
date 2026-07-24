@@ -116,8 +116,9 @@ const providers = [
   {
     id: "activepieces",
     name: "Activepieces",
-    category: "Automation",
-    description: "Workflow orchestration, approvals, retries and schedules.",
+    category: "Optional automation",
+    description:
+      "Optional workflow handoff and event sink. The native Recover queue remains the primary runtime.",
     env: ["ACTIVEPIECES_URL", "ACTIVEPIECES_API_KEY"],
     fields: [
       {
